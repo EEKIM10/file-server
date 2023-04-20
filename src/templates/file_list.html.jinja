@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File list - {{ directory_str }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}"/>
+    <link rel="shortcut icon" href="{{ url_for('static', path='/favicon.ico') }}"/>
+</head>
+<body>
+    <h1>Index of <code>{{ directory_str }}</code>:</h1>
+    <ul>
+        <li>
+            <a href="{{ up }}">
+                <span style="display: flex;align-items: center">
+                    <img
+                    src="{{ url_for('static', path='/icons/back.svg') }}"
+                    alt="Back"
+                    title="Back"
+                    width="64"
+                    height="64"
+                    class="icon"
+                    />
+                    Back
+                </span>
+            </a>
+        </li>
+        <li>
+            {% if show_hidden %}
+                <a href="?show-hidden=0" onclick="(e)=>{e.preventDefault()}">
+                    <span style="display: flex;align-items: center">
+                        <img
+                        src="{{ url_for('static', path='/icons/folder.svg') }}"
+                        alt="Hidden"
+                        title="Hidden"
+                        width="64"
+                        height="64"
+                        class="icon"
+                        />
+                        Hide hidden files
+                    </span>
+                </a>
+            {% else %}
+                <a href="?show-hidden=1" onclick="(e)=>{e.preventDefault()}">
+                    <span style="display: flex;align-items: center">
+                        <img
+                        src="{{ url_for('static', path='/icons/folder-open.svg') }}"
+                        alt="Hidden"
+                        title="Hidden"
+                        width="64"
+                        height="64"
+                        class="icon"
+                        />
+                        Show hidden files
+                    </span>
+                </a>
+            {% endif %}
+        </li>
+    </ul>
+    <br/>
+    <table>
+        <tr>
+            <th style="font-size: 16px" class="table-icon">&nbsp;</th>
+            <th class="table-name">Name</th>
+            <th class="table-size">Size</th>
+            <th class="table-download">Download</th>
+            <th class="table-modified">Modified</th>
+            <th class="table-notes">Notes</th>
+        </tr>
+        {% for file in files %}
+            {% if file.hidden and not show_hidden %}
+                {% continue %}
+            {% endif %}
+            <tr>
+                <td class="table-icon">
+                    <img
+                            src="{{ url_for('static', path='/icons/' + file['type'] + '.svg') }}"
+                            alt="{{ file.type }}"
+                            title="{{ file.type }} ({{ file.size }})"
+                            width="16"
+                            height="16"
+                            class="icon"
+                    />
+                </td>
+                <td>
+                    <a href="/{{ file.href }}"><code>{{ file.name }}</code></a>
+                </td>
+                <td class="table-size">
+                    {{ file.size }} {{ file.unit }}
+                </td>
+                <td class="table-download">
+                    <a href="/{{ file.href }}" download="1">Download</a>
+                </td>
+                <td x-value="$mod" class="table-modified">
+                    {{ file.modified * 1000 }}
+                </td>
+                <td class="table-notes">
+                    {{ file.notes }}
+                    {% if file.notes %}
+                        <br/>
+                    {% endif %}
+
+                    {% if file.locked %}
+                        <span style="color: red">Inaccessible</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+<script>
+    for(let element of document.querySelectorAll('[x-value]')) {
+        if(element.getAttribute('x-value') === '$mod') {
+            let date = new Date(element.innerText * 1);
+            element.innerText = date.toLocaleString();
+        }
+    }
+</script>
+</body>
+</html>

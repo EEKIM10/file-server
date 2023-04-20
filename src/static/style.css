@@ -1,0 +1,93 @@
+html {
+    padding: 0;
+    margin: 0;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1rem;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+@media screen and (prefers-color-scheme: dark) {
+    html {
+        background-color: #1E1F22;
+        color: #dddddc;
+    }
+
+    a {
+        color: #7289DA;
+    }
+
+    img.icon {
+        filter: invert(1);
+    }
+
+    table, th, td {
+        border: 2px solid #111;
+        border-collapse: collapse;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    .table-download, .table-modified {
+        display: none
+    }
+    th, td {
+        padding: 0.9rem;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .table-download, .table-modified {
+        display: none
+    }
+    th, td {
+        padding: 0.7rem;
+    }
+}
+
+@media screen and (max-width: 650px) {
+    html {
+        font-size: .8rem;
+    }
+    .table-download, .table-icon, .table-notes, .table-modified {
+        display: none
+    }
+
+    th, td {
+        padding: 0.65rem;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    html {
+        font-size: .8em;
+    }
+    th, td {
+        padding: 0.5rem;
+    }
+}
+
+img.icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0 0.5rem;
+}
+
+table {
+    width: 100%;
+    text-align: center;
+}
+
+table, th, td {
+    border: 2px solid #ddd;
+    border-collapse: collapse;
+}
+
+/* Add some padding to the inside of cells */
+th, td {
+    padding: 1rem;
+}
