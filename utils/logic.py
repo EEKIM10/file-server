@@ -73,9 +73,30 @@ def mime_type_from_file_ext(file: Path, *, guess_on_unsure: bool = False, magic:
     return mime
 
 
-def can_access(file: Path):
+def can_access(file: Path, definite: bool = True) -> bool:
     """Check if the file can be accessed by the server."""
-    return os.access(file, os.R_OK)
+    x = os.access(file, os.R_OK)
+    if x:
+        if definite:
+            try:
+                stat = file.stat()
+            except (OSError, PermissionError) as e:
+                logger.debug("File is not accessible: %s" % e)
+                return False
+            else:
+                if not file.is_dir():
+                    try:
+                        with file.open("br") as f:
+                            f.read(1)
+                    except (OSError, PermissionError) as e:
+                        logger.debug("File is not accessible: %s" % e)
+                    else:
+                        return True
+                else:
+                    return True
+        else:
+            return True
+    return False
 
 
 def read_or_stream(file: Path, max_size_mb: float = 10.0) -> int:

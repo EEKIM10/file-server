@@ -75,7 +75,11 @@ def root(
     if not is_root_or_below(app, directory):
         logger.warning("File %r is not accessible (above root directory).", directory)
         raise HTTPException(status_code=403, detail="Forbidden")
-
+    
+    if not can_access(directory):
+        logger.warning("File %r is not accessible.", directory)
+        raise HTTPException(status_code=403, detail="Forbidden")
+        
     if not directory.is_dir():
         return serve(directory, etag or etag2 or None, last_modified or etag2)
 
@@ -88,7 +92,7 @@ def root(
         file: Path
         try:
             is_symlink = file.is_symlink()
-        except OSError:
+        except (OSError, PermissionError):
             is_symlink = False
         else:
             if is_symlink:
@@ -116,7 +120,7 @@ def root(
         try:
             stat = file.stat(follow_symlinks=is_symlink)
             is_dir = file.is_dir()
-        except OSError:
+        except (OSError, PermissionError):
             stat = None
             is_dir = None
 
@@ -132,14 +136,14 @@ def root(
             if is_dir:
                 try:
                     size = "{:,}".format(len(list(file.iterdir())))
-                except OSError:
+                except (OSError, PermissionError):
                     size = "?"
                 unit = "items"
             else:
                 try:
                     size, unit = bytes_to_human(stat.st_size)
                     size = round(size, 2)
-                except (OSError, AttributeError):
+                except (OSError, PermissionError, AttributeError):
                     size = "?"
                     unit = "B"
         else:
@@ -148,6 +152,8 @@ def root(
 
         locked = False
         if stat:
+            if not can_access(file):
+                locked = True
             if is_dir:
                 if not can_access(file):
                     locked = True
