@@ -92,12 +92,20 @@ def read_or_stream(file: Path, max_size_mb: float = 10.0) -> int:
 
 def has_changed(etag: str = None, last_modified: str = None, file: Path = None):
     """Checks if the file has changed since the last request."""
-    changed = None
     if etag:
         etag = etag.replace("W/", "").replace('"', "")
-        changed = etag != get_etag(file)
-    if last_modified and changed is None:
-        last_mod = datetime.utcfromtimestamp(file.stat().st_mtime).strftime("%a, %d %b %Y %H:%M:%S GMT")
-        changed = last_modified.lower() != last_mod.lower()
+        logger.debug(etag, "vs", get_etag(file))
+        if etag == get_etag(file):
+            return False
+    else:
+        logger.debug("No etag.")
 
-    return changed is not False
+    if last_modified:
+        last_mod = datetime.utcfromtimestamp(file.stat().st_mtime).strftime("%a, %d %b %Y %H:%M:%S GMT")
+        logger.debug(last_modified.lower(), "vs", last_mod.lower())
+        if last_modified.lower() == last_mod.lower():
+            return False
+    else:
+        logger.debug("No last modified")
+
+    return True

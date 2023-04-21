@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}"/>
     <link rel="shortcut icon" href="{{ url_for('static', path='/favicon.ico') }}"/>
+    <script src="{{ url_for('static', path='/index.js') }}" defer></script>
 </head>
 <body>
     <h1>Index of <code>{{ directory_str }}</code>:</h1>
@@ -61,10 +62,73 @@
     <table>
         <tr>
             <th style="font-size: 16px" class="table-icon">&nbsp;</th>
-            <th class="table-name">Name</th>
-            <th class="table-size">Size</th>
+            <th class="table-name" x-sort-reversed="{{ reverse_sort }}" onclick="resort">
+                  {% if sort == 'name' %}
+                    {% if reverse_sort == True %}
+                        <img
+                            src="{{ url_for('static', path='/icons/up.svg') }}"
+                            alt=""
+                            width="32"
+                            height="32"
+                            class="icon"
+                        />
+                    {% else %}
+                        <img
+                            src="{{ url_for('static', path='/icons/down.svg') }}"
+                            alt=""
+                            width="32"
+                            height="32"
+                            class="icon"
+                        />
+                    {% endif %}
+                {% endif %}
+                Name
+            </th>
+            <th class="table-size" x-sort-reversed="{{ reverse_sort }}" onclick="resort">
+                {% if sort == 'size' %}
+                    {% if reverse_sort == True %}
+                        <img
+                            src="{{ url_for('static', path='/icons/up.svg') }}"
+                            alt=""
+                            width="32"
+                            height="32"
+                            class="icon"
+                        />
+                    {% else %}
+                        <img
+                            src="{{ url_for('static', path='/icons/down.svg') }}"
+                            alt=""
+                            width="32"
+                            height="32"
+                            class="icon"
+                        />
+                    {% endif %}
+                {% endif %}
+                Size
+            </th>
             <th class="table-download">Download</th>
-            <th class="table-modified">Modified</th>
+            <th class="table-modified" x-sort-reversed="{{ reverse_sort }}">
+                  {% if sort == 'modified' %}
+                    {% if reverse_sort == True %}
+                        <img
+                            src="{{ url_for('static', path='/icons/up.svg') }}"
+                            alt=""
+                            width="32"
+                            height="32"
+                            class="icon"
+                        />
+                    {% else %}
+                        <img
+                            src="{{ url_for('static', path='/icons/down.svg') }}"
+                            alt=""
+                            width="32"
+                            height="32"
+                            class="icon"
+                        />
+                    {% endif %}
+                {% endif %}
+                Modified
+            </th>
             <th class="table-notes">Notes</th>
         </tr>
         {% for file in files %}
@@ -82,15 +146,21 @@
                             class="icon"
                     />
                 </td>
-                <td>
+                <td class="table-filename">
                     <a href="/{{ file.href }}"><code>{{ file.name }}</code></a>
                 </td>
                 <td class="table-size">
                     {{ file.size }} {{ file.unit }}
                 </td>
-                <td class="table-download">
-                    <a href="/{{ file.href }}" download="1">Download</a>
-                </td>
+                {% if file.type != "folder" %}
+                    <td class="table-download">
+                        <a href="/{{ file.href }}" download="1">Download</a>
+                    </td>
+                {% else %}
+                    <td class="table-download">
+                        &nbsp;
+                    </td>
+                {% endif %}
                 <td x-value="$mod" class="table-modified">
                     {{ file.modified * 1000 }}
                 </td>
@@ -107,13 +177,16 @@
             </tr>
         {% endfor %}
     </table>
-<script>
-    for(let element of document.querySelectorAll('[x-value]')) {
-        if(element.getAttribute('x-value') === '$mod') {
-            let date = new Date(element.innerText * 1);
-            element.innerText = date.toLocaleString();
+    <script>
+        for(let element of document.querySelectorAll('[x-value]')) {
+            if(element.getAttribute('x-value') === '$mod') {
+                let date = new Date(element.innerText * 1);
+                element.innerText = date.toLocaleString();
+            }
         }
-    }
-</script>
+    </script>
+    <footer>
+        <a href="https://github.com/EEKIM10/file-server" target="_blank" rel="noopener">File Server</a> version {{ server_version }}
+    </footer>
 </body>
 </html>

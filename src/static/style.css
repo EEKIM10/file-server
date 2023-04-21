@@ -3,6 +3,7 @@ html {
     margin: 0;
     font-family: 'Open Sans', sans-serif;
     font-size: 1rem;
+    height: 100%
 }
 
 ul {
@@ -10,6 +11,12 @@ ul {
     padding: 0;
     margin: 0;
 }
+
+/*th.table-size, th.table-modified, th.table-name {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    border: 0;*/
+/*}*/
 
 @media screen and (prefers-color-scheme: dark) {
     html {
@@ -89,5 +96,5 @@ table, th, td {
 
 /* Add some padding to the inside of cells */
 th, td {
-    padding: 1rem;
+    padding: .6rem;
 }
