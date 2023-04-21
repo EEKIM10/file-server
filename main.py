@@ -15,7 +15,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from magic import Magic
 from utils.logic import *
-# from utils.security import http_basic
 
 __version__ = "0.1.0"
 
@@ -233,6 +232,7 @@ def root(
 @click.option("--port", default=8000)
 @click.option("--config", default="config.ini", type=click.Path(exists=True, dir_okay=False))
 def main(top: str, host: str, port: int, config: str):
+    global app
     import uvicorn
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s: %(message)s")
@@ -306,6 +306,22 @@ def main(top: str, host: str, port: int, config: str):
                     handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s"))
                     logger.addHandler(handler)
                     logger.info("Log file set to %r", log_file)
+        
+        if "Server.fastapi-args" in config:
+            kwargs = {"title": "File Server", "description": "A simple file server.", "version": __version__, "docs_url": None, "redoc_url": None}
+            for key, value in config["Server.fastapi-args"].items():
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+                kwargs[key] = value
+            app = FastAPI(title="File Server", version=__version__, docs_url=None, redoc_url=None)
+
+            app.state.logger = logger
+            app.mount("/__static__", StaticFiles(directory="static"), name="static")
+            templates = Jinja2Templates(directory="templates")
+            templates.env.add_extension('jinja2.ext.loopcontrols')
+            app.add_api_route("/{path:path}", root, methods=["GET"])
     else:
         config = configparser.ConfigParser()
 
@@ -313,7 +329,17 @@ def main(top: str, host: str, port: int, config: str):
     app.state.mime = Magic(mime=True, mime_encoding=True)
     app.state.config = config
     app.state.logger = logger
-    uvicorn.run(app, host=host, port=port)
+
+    kwargs = {}
+
+    if "Server.uvicorn-args" in config:
+        for key, value in config["Server.uvicorn-args"].items():
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                pass
+            kwargs[key] = value
+    uvicorn.run(app, host=host, port=port, **kwargs)
 
 
 if __name__ == "__main__":
