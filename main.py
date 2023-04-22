@@ -25,11 +25,17 @@ templates = Jinja2Templates(directory="templates")
 templates.env.add_extension('jinja2.ext.loopcontrols')
 
 
-def serve(directory: Path, etag: str = None, last_modified: str = None, method: str = "GET"):
+def serve(
+        directory: Path,
+        etag: str = None,
+        last_modified: str = None,
+        method: str = "GET",
+        stat: os.stat_result = None
+):
     logger = app.state.logger
     if not can_access(directory):
         logger.warning("File %r is not accessible.", directory)
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=403, detail="File is not accessible")
 
     changed = has_changed(etag, last_modified, directory)
     if not changed:
@@ -44,7 +50,7 @@ def serve(directory: Path, etag: str = None, last_modified: str = None, method: 
             ),
             filename=directory.name,
             content_disposition_type="inline",
-            method=method
+            method=method,
         )
     if "Server.custom-headers" in app.state.config:
         for key, value in app.state.config["Server.custom-headers"].items():
@@ -74,11 +80,11 @@ def root(
     # if the path is above the root, raise 403 to prevent reverse navigation
     if not is_root_or_below(app, directory):
         logger.warning("File %r is not accessible (above root directory).", directory)
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=403, detail="File is not accessible on the web server.")
     
     if not can_access(directory):
         logger.warning("File %r is not accessible.", directory)
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=403, detail="File is not accessible.")
         
     if not directory.is_dir():
         return serve(directory, etag or etag2 or None, last_modified or etag2)
@@ -238,7 +244,7 @@ def root(
 @click.option("--port", default=8000)
 @click.option("--config", default="config.ini", type=click.Path(exists=True, dir_okay=False))
 def main(top: str, host: str, port: int, config: str):
-    global app
+    global app, templates
     import uvicorn
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s: %(message)s")
